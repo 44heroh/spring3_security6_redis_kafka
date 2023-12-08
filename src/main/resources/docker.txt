@@ -1,0 +1,8 @@
+docker run --name postgresql \
+-e POSTGRESQL_USERNAME=demo \
+-e POSTGRESQL_PASSWORD=demo \
+-e POSTGRESQL_DATABASE=courses \
+-p 15432:5432 \
+bitnami/postgresql:latest
+
+docker run --name postgresql -e POSTGRESQL_USERNAME=demo -e POSTGRESQL_PASSWORD=demo -e POSTGRESQL_DATABASE=courses -p 15432:5432 bitnami/postgresql:latest

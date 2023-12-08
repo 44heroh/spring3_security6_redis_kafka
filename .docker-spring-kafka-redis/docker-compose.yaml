@@ -1,0 +1,84 @@
+version : '3'
+services :
+#  app:
+#    build: .
+#    container_name: app-kafka
+#    depends_on:
+#      - db
+#      - redis
+#      - broker
+#    ports:
+#      - "8075:8075"
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/courses
+#      - SPRING_DATASOURCE_USERNAME=demo
+#      - SPRING_DATASOURCE_PASSWORD=demo
+#      - SPRING_JWT_SECRET=b5f59337a612a2a7dc07328f3e7d1a04722967c7f06df20a499a7d3f91ff2a7e
+#      - SPRING_JWT_EXPIRATIONMS=86400000
+#    networks:
+#      - spring-docker-kafka
+  db:
+    image: "bitnami/postgresql:latest"
+    container_name: db-kafka
+    environment:
+      - POSTGRES_USER=demo
+      - POSTGRES_PASSWORD=demo
+      - POSTGRES_DB=courses
+    networks:
+      - spring-docker-kafka
+    ports:
+      - "15432:5432"
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+      - db_data:/var/lib/postgresql/data
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    volumes:
+      - /redis/redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    networks:
+      - spring-docker-kafka
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper-1
+    ports:
+      - '2181:2181'
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - spring-docker-kafka
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-1
+    ports:
+      # To learn about configuring Kafka for access across networks see
+      # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+#      KAFKA_CREATE_TOPICS: "programmingsharing.topic1:1:1,receiving-topic:1:1"
+#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+#      KAFKA_CREATE_TOPICS: "programmingsharing.topic1:1:1,receiving-topic:1:1"
+    networks:
+      - spring-docker-kafka
+
+volumes:
+  db_data:
+    driver: local
+networks:
+  spring-docker-kafka:
+    driver: bridge
