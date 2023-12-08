@@ -6,7 +6,7 @@ import com.example.spring3security6docker.dto.PagerQueryDto;
 import com.example.spring3security6docker.mapper.CourseMapper;
 import com.example.spring3security6docker.repository.CourseRepository;
 import com.example.spring3security6docker.service.CourseService;
-import com.example.spring3security6docker.service.RedisServiceImp;
+import com.example.spring3security6docker.service.impl.RedisServiceImp;
 import com.example.spring3security6docker.service.impl.CourseServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
