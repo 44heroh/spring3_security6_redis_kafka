@@ -3,7 +3,6 @@ package com.example.spring3security6docker.rest.controller;
 import com.example.spring3security6docker.dao.entity.City;
 import com.example.spring3security6docker.dao.entity.Weather;
 import com.example.spring3security6docker.dto.CoordDto;
-import com.example.spring3security6docker.dto.CourseDto;
 import com.example.spring3security6docker.dto.PagerQueryDto;
 import com.example.spring3security6docker.dto.request.CityCreateRequestDto;
 import com.example.spring3security6docker.dto.request.CoordCityCreateRequestDto;
@@ -17,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +32,19 @@ public class WeatherController {
     private final OpenWeatherService openWeatherService;
     private final CityService cityService;
     private final WeatherService weatherService;
+    private final KafkaTemplate<String, WeatherCreateRequestDto> template;
 
     @PostMapping("/import")
     @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
     public ResponseEntity<Object> importWeather(@Valid @RequestBody CoordCityCreateRequestDto coordCityCreateRequestDto) {
+        weatherService.importWeather(new CoordDto(coordCityCreateRequestDto.getLat(), coordCityCreateRequestDto.getLon()));
+
+        return ResponseEntity.ok(true);
+    }
+
+    @PostMapping("/import1")
+    @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
+    public ResponseEntity<Object> importWeather1(@Valid @RequestBody CoordCityCreateRequestDto coordCityCreateRequestDto) {
         System.out.println("coordCityCreateRequestDto => " + coordCityCreateRequestDto);
         CoordDto coordDto = new CoordDto(coordCityCreateRequestDto.getLat(), coordCityCreateRequestDto.getLon());
         ResponseEntity<ResponseOpenWeather> ans = openWeatherService.getForecast(coordDto);
@@ -66,7 +75,8 @@ public class WeatherController {
 
             System.out.println("weatherDto => " + weatherDto);
 
-            weather = weatherService.save(weatherDto);
+            template.send("import-weather-topic", weatherDto);
+//            weather = weatherService.save(weatherDto);
         }
 
         return ResponseEntity.ok(ans.getBody());
@@ -77,7 +87,7 @@ public class WeatherController {
     public ResponseEntity<Page<Weather>> getAllWeather(
             @RequestBody PagerQueryDto pagerQueryDto
     ) throws ParseException {
-        Page<Weather> weathes = weatherService.getWeathes(pagerQueryDto);
+        Page<Weather> weathes = weatherService.getWeather(pagerQueryDto);
 
         return ResponseEntity.ok(weathes);
     }

@@ -1,13 +1,13 @@
 package com.example.spring3security6docker.service.impl;
 
-import com.example.spring3security6docker.dto.request.CourseCreateRequestDto;
-import com.example.spring3security6docker.pager.Pager;
-import com.example.spring3security6docker.rest.controller.CourseController;
 import com.example.spring3security6docker.dao.entity.Course;
 import com.example.spring3security6docker.dto.CourseDto;
 import com.example.spring3security6docker.dto.PagerQueryDto;
+import com.example.spring3security6docker.dto.request.CourseCreateRequestDto;
 import com.example.spring3security6docker.mapper.CourseMapper;
+import com.example.spring3security6docker.pager.Pager;
 import com.example.spring3security6docker.repository.CourseRepository;
+import com.example.spring3security6docker.rest.controller.CourseController;
 import com.example.spring3security6docker.service.CourseService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -66,7 +66,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "customers", allEntries = true)
+    @CacheEvict(cacheNames = {"course", "courses"}, allEntries = true)
     public Course save(CourseCreateRequestDto request) {
         boolean exists = !repository.findByParams(request.getAuthor(), request.getName()).isEmpty();
         if(exists){
